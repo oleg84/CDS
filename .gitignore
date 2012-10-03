@@ -1,0 +1,8 @@
+#editor tmp files
+*~
+
+#build results
+build/
+
+#python compiled
+*.pyc
