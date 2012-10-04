@@ -1,6 +1,5 @@
 import bjsonrpc
 from bjsonrpc.handlers import BaseHandler
-import settings
 import logging
 
 class TestServerHandler(BaseHandler):
@@ -8,7 +7,7 @@ class TestServerHandler(BaseHandler):
     	self.id_ = 0
 
     def hello(self, txt):
-            response = "hello, %s!." % txt
+            response = {"responseStr":"hello, %s!." % txt, "other str" : "some other string", "someInt":5}
 	    logging.debug("Responding: %s", response)
 	    return response
 
@@ -23,7 +22,7 @@ class TestServerHandler(BaseHandler):
     	self.id_ = id_
 
 
-def test_server():
-	s = bjsonrpc.createserver( port=settings.server_port, handler_factory = TestServerHandler )
+def test_server(port):
+	s = bjsonrpc.createserver( port=port, handler_factory = TestServerHandler )
 	s.debug_socket(True)
 	s.serve()
