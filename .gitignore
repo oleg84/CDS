@@ -6,3 +6,6 @@ build/
 
 #python compiled
 *.pyc
+
+#log files
+*.log
