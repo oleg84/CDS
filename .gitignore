@@ -9,6 +9,7 @@ build/
 
 #log files
 *.log
+*.pcap
 
 #DB files
 *.sqlite

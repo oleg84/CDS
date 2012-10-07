@@ -22,13 +22,16 @@ def _logFunction(*args):
 
 #########################################
 class SimplateServerHandler(BaseHandler):
+    def _shutdown(self):
+        logging.info("disconnected, simplateId=%s", unicode(self.simplateId))
+
     def _setup(self):
-    	self.scenarioId = None
-    	self.simplateId = None 
+        self.scenarioId = None
+        self.simplateId = None 
         self.cardId = None
 
     def ping(self):
-        logging.debug("Ping from simplate %s", unicode(simplateId))
+        logging.debug("Ping from simplate %s", unicode(self.simplateId))
         return
 
 ### Common methods
@@ -150,6 +153,21 @@ class SimplateServerHandler(BaseHandler):
             return True
         else:
             return False
+
+
+#########################################
+class BarServerHandler(BaseHandler):
+    def _shutdown(self):
+        pass
+        
+    def _setup(self):
+        pass
+
+    def ping(self):
+        logging.debug("Ping")
+        return
+
+
 
 def simplateServer(port):
 	s = bjsonrpc.createserver( port=port, handler_factory = SimplateServerHandler )

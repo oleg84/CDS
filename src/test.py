@@ -9,6 +9,7 @@ print c.call.startSession("client1", "Вася Пупкин")
 c.call.barOrderInfo(({"drink":"Coke", "options":"sugar"}, {"drink":"tea", "option":"lemon"}))
 c.call.barOrderInfo(({"drink":"Coke", "options":"sugar"}, {"drink":"tea", "option":"lemon"}))
 c.call.barOrderInfo(({"drink":"Coke", "options":"sugar"}, {"drink":"tea", "option":"lemon"}))
+c.call.ping()
 c.call.endSession({u'balance': 450, u'coupons': u'some coupon info'})
 
 print c.call.startSession("client2", "John Doe")
