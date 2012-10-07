@@ -25,3 +25,6 @@ c.call.simpleResult('simple id', 'simple result')
 print c.call.getFeedbackStatistics()
 print c.call.shouldStartBigShow()
 c.call.endSession({u'balance': 350, u'coupons': u'some coupon info'})
+
+c=connect(host="127.0.0.1", port=18889)
+c.call.ping()

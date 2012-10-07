@@ -4,6 +4,7 @@ from bjsonrpc.exceptions import ServerError
 import logging
 import cds_settings
 import inspect
+import db
 
 def _function():
     return inspect.stack()[1][3]
@@ -171,5 +172,10 @@ class BarServerHandler(BaseHandler):
 
 def simplateServer(port):
 	s = bjsonrpc.createserver( port=port, handler_factory = SimplateServerHandler )
+	s.debug_socket(True)
+	s.serve()
+
+def barServer(port):
+	s = bjsonrpc.createserver( port=port, handler_factory = BarServerHandler )
 	s.debug_socket(True)
 	s.serve()

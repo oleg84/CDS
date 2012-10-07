@@ -1,6 +1,6 @@
 import logging
 
-LOGLEVEL = logging.INFO
+LOGLEVEL = logging.DEBUG
 
 SIMPLATE_SERVER_PORT = 18888
 BAR_SERVER_PORT = 18889
