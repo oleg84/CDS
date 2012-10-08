@@ -4,6 +4,8 @@
 from bjsonrpc import connect
 
 c=connect(host="127.0.0.1", port=18888)
+print c.call.getLocalTime()
+print c.call.getUtcTime()
 c.call.registrate(2, 10)
 print c.call.startSession("client1", "Вася Пупкин")
 c.call.barOrderInfo(({"drink":"Coke", "options":"sugar"}, {"drink":"tea", "option":"lemon"}))

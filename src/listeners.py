@@ -5,6 +5,7 @@ import logging
 import cds_settings
 import inspect
 import db
+import datetime
 
 def _function():
     return inspect.stack()[1][3]
@@ -36,6 +37,12 @@ class SimplateServerHandler(BaseHandler):
         return
 
 ### Common methods
+    def getLocalTime(self):
+        return datetime.datetime.now().isoformat()
+
+    def getUtcTime(self):
+        return datetime.datetime.utcnow().isoformat()
+        
     def registrate(self, scenarioId, simplateId):
         if self._isRegistered():
             logging.error("Duplicate registration from simplate id %s, scenarioId %d", unicode(simplateId), scenarioId)
@@ -48,7 +55,6 @@ class SimplateServerHandler(BaseHandler):
         _logFunction("scenarioId=",  scenarioId,  ", simplateId=", simplateId)
         self.scenarioId = scenarioId
         self.simplateId = simplateId
-
     
     def startSession(self, cardId, clientInfo):
         self._checkRegistered()
@@ -171,11 +177,11 @@ class BarServerHandler(BaseHandler):
 
 
 def simplateServer(port):
-	s = bjsonrpc.createserver( port=port, handler_factory = SimplateServerHandler )
+	s = bjsonrpc.createserver( host = '', port=port, handler_factory = SimplateServerHandler )
 	s.debug_socket(True)
 	s.serve()
 
 def barServer(port):
-	s = bjsonrpc.createserver( port=port, handler_factory = BarServerHandler )
+	s = bjsonrpc.createserver( host = '', port=port, handler_factory = BarServerHandler )
 	s.debug_socket(True)
 	s.serve()
