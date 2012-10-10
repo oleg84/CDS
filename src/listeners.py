@@ -7,6 +7,8 @@ import inspect
 import db
 import datetime
 import plasma
+import simple
+import collections
 
 def _function():
     return inspect.stack()[1][3]
@@ -27,6 +29,7 @@ def _logFunction(*args):
 class SimplateServerHandler(BaseHandler):
     def _shutdown(self):
         logging.info("disconnected, simplateId=%s", unicode(self.simplateId))
+        db.CancelLastAllowedTime()
 
     def _setup(self):
         self.scenarioId = None
@@ -112,24 +115,25 @@ class SimplateServerHandler(BaseHandler):
         _logFunction("simplateId=", self.simplateId, ", simpleId=",  simpleId)
         plasma.shopSimpleStart(self.simplateId, simpleId)
         return 
-        #TODO: implement
 
     def simpleResult(self, simpleId, result):
         self._checkRegistered()
         self._checkSessionStarted()
         self._checkIfShopSimplate()
         _logFunction("simplateId=", self.simplateId, ", simpleId=",  simpleId, ", result=", result)
+        if not isinstance(result, collections.Iterable) or len(result) != 2:
+            raise ServerError("simpleResult incorrect type. Should be a tuple of 2")
+
         plasma.shopSimpleResult(self.simplateId, simpleId, result)
-        return 
-        #TODO: implement
+        simple.ProcessSimpleResult(simpleId, result)
 
     def shouldStartBigShow(self):
         self._checkRegistered()
         self._checkSessionStarted()
         self._checkIfShopSimplate()
-        _logFunction("simplateId=", self.simplateId)
-        return False
-        #TODO: implement
+        ret = db.ShouldStartBigShow(cds_settings.BIG_SHOW_INTERVAL_SECONDS, cds_settings.BIG_SHOW_SIMPLATE_TIMEOUT_SECONDS)
+        _logFunction("simplateId=", self.simplateId, ", returning: ", ret)
+        return ret
 
     def getFeedbackStatistics(self):
         self._checkRegistered()

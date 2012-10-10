@@ -1,10 +1,14 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import sessionmaker, relationship, backref, subqueryload
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.exc import IntegrityError
 import logging
+from datetime import datetime, timedelta
+
+DB_LAST_SHOWN_ID = 1
+DB_LAST_ALLOWED_ID = 2
 
 engine = create_engine('sqlite:///data.sqlite')
 Base = declarative_base()
@@ -33,6 +37,14 @@ class Coupon(Base):
 
     def __repr__(self):
         return "<Coupon('%s', %d)>" % (self.name, self.isUsed)
+
+class BigShow(Base):
+    __tablename__ = 'big_show'
+    id = Column(Integer, primary_key = True)
+    time = Column(DateTime)
+
+    def __repr__(self):
+        return "<lastShown %s>" % str(self.lastShown)
 
 
 Base.metadata.create_all(engine)
@@ -137,3 +149,81 @@ def updateClient(cardId, balance, coupons):
     return True
     
         
+
+####################################
+#Working with BigShow
+####################################
+
+def ShouldStartBigShow(bigShowIntervalSeconds, bigShowSimplateTimeout):
+    '''
+    Determines if the Big show should be started.
+    There are two conditions:
+    1. The diff between now and last time shown is more than a bigShowIntervalSeconds
+    1. The diff between now and last allowed is more than a bigShowSimplateTimeout 
+    '''
+    session = Session()
+    lastShownTime = session.query(BigShow).filter(BigShow.id == DB_LAST_SHOWN_ID).first()
+    lastAllowedTime = session.query(BigShow).filter(BigShow.id == DB_LAST_ALLOWED_ID).first()
+    now = datetime.utcnow()
+
+    lastShownDelta = timedelta.max
+    lastAllowedDelta = timedelta.max
+    
+    if lastShownTime:
+        lastShownDelta = now - lastShownTime.time
+        logging.debug("Last shown time = %s", lastShownTime.time )
+
+    if lastAllowedTime:
+        lastAllowedDelta = now - lastAllowedTime.time
+        logging.debug("Last allowed time = %s", lastAllowedTime.time )
+
+    if _timedelta_total_seconds(lastShownDelta) < bigShowIntervalSeconds:
+        logging.debug("lastShownDelta(%d) < bigShowIntervalSeconds(%d)", _timedelta_total_seconds(lastShownDelta), bigShowIntervalSeconds)
+        return False
+
+    if _timedelta_total_seconds(lastAllowedDelta) < bigShowSimplateTimeout:
+        logging.debug("lastAllowedDelta(%d) < bigShowSimplateTimeout(%d)", _timedelta_total_seconds(lastAllowedDelta), bigShowSimplateTimeout)
+        return False
+
+    if not lastAllowedTime:
+        lastAllowedTime = BigShow()
+        lastAllowedTime.id = DB_LAST_ALLOWED_ID
+        session.add(lastAllowedTime)
+    lastAllowedTime.time = now
+    session.commit()
+    session.close()
+
+    return True
+
+def SetBigShowShown():
+    '''
+    Sets the last shown time to now
+    '''
+    session = Session()
+    lastShownTime = session.query(BigShow).filter(BigShow.id == DB_LAST_SHOWN_ID).first()
+
+    if not lastShownTime:
+        lastShownTime = BigShow()
+        lastShownTime.id = DB_LAST_SHOWN_ID
+        session.add(lastShownTime)
+
+    lastShownTime.time = datetime.utcnow()
+
+    session.commit()
+    session.close()
+
+def CancelLastAllowedTime():
+    '''
+    Cancels the last allowed time
+    '''
+    session = Session()
+    lastAllowedTime = session.query(BigShow).filter(BigShow.id == DB_LAST_ALLOWED_ID).first()
+
+    if lastAllowedTime:
+        session.delete(lastAllowedTime)
+
+    session.commit()
+    session.close()
+
+def _timedelta_total_seconds(td): #this is not defined in python earlier v 2.7
+    return td.days * 24 * 3600 + td.seconds #ignore microseconds
