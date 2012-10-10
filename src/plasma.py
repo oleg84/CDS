@@ -3,6 +3,18 @@ import socket
 import select
 import threading
 
+def shopSimpleStart(simplateId, simpleId):
+    sendMessage('shopSimpleStart', simplateId, simpleId)
+
+def shopSimpleResult(simplateId, simpleId, result):
+    sendMessage('shopSimpleResult', simplateId, simpleId, result)
+
+def shopStartSession(simplateId):
+    sendMessage('shopStartSession', simplateId)
+
+def shopEndSession(simplateId):
+    sendMessage('shopEndSession', simplateId)
+
 _isInitialized = False
 _sck = None
 _sockets = []
@@ -77,7 +89,7 @@ def serve():
 
         if _sck in readyToRead:
             newSocket, addr = _sck.accept()
-            logging.debug("Accepted a new connetion from %s", unicode(addr))
+            logging.info("Accepted a new connetion from %s", unicode(addr))
             with _lock:
                 _sockets.append(newSocket)
                 
@@ -104,6 +116,7 @@ def _readAll(socket):
 
     return True
 
+
 def sendMessage(messageId, firstParam, *params):
     """
         sends a message to all connected clients.
@@ -115,11 +128,11 @@ def sendMessage(messageId, firstParam, *params):
         sockets += _sockets
 
 
-    toSend = unicode(messageId) + ':' + unicode(firstParam)
+    toSend = '{"eventId":' + _quoteParam(messageId) + ',"params":[' + _quoteParam(firstParam)
     for p in params:
-        toSend += ',' + unicode(p)
+        toSend += ',' + _quoteParam(p)
 
-    toSend += '\n'
+    toSend += ']}\n'
 
     if not sockets:
         logging.warning("Ignoring a message to plasma: %s", toSend.strip('\r\n'))
@@ -132,6 +145,17 @@ def sendMessage(messageId, firstParam, *params):
             s.send(toSend)
         except Exception:
             pass
+
+def _quoteParam(param):
+    '''
+        A very dummy implementation of quoting
+
+        TODO: add more details if needed
+    '''
+    if type(param) in (int, float, long):
+        return str(param)
+    return '"' + unicode(param) + '"'
+    
 
     
 

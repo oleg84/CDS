@@ -83,7 +83,7 @@ class SimplateServerHandler(BaseHandler):
             raise ServerError("Internal server error. See logs")
 
         self.cardId = cardId
-        plasma.sendMessage('shopStartSession', self.simplateId)
+        plasma.shopStartSession(self.simplateId)
         return client
 
 
@@ -94,7 +94,7 @@ class SimplateServerHandler(BaseHandler):
 
         cardId = self.cardId
         self.cardId = None
-        plasma.sendMessage('shopEndSession', self.simplateId)
+        plasma.shopEndSession(self.simplateId)
         if type(updatedAccountInfo) is not dict or 'balance' not in updatedAccountInfo or 'coupons' not in updatedAccountInfo:
             log.error("Wrong format of the updatedAccountInfo %s", unicode(updatedAccountInfo))
             raise ServerError("Internal server error. See logs")
@@ -110,6 +110,7 @@ class SimplateServerHandler(BaseHandler):
         self._checkSessionStarted()
         self._checkIfShopSimplate()
         _logFunction("simplateId=", self.simplateId, ", simpleId=",  simpleId)
+        plasma.shopSimpleStart(self.simplateId, simpleId)
         return 
         #TODO: implement
 
@@ -118,6 +119,7 @@ class SimplateServerHandler(BaseHandler):
         self._checkSessionStarted()
         self._checkIfShopSimplate()
         _logFunction("simplateId=", self.simplateId, ", simpleId=",  simpleId, ", result=", result)
+        plasma.shopSimpleResult(self.simplateId, simpleId, result)
         return 
         #TODO: implement
 
