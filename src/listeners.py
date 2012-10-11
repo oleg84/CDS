@@ -9,6 +9,7 @@ import datetime
 import plasma
 import simple
 import collections
+import threading
 
 def _function():
     return inspect.stack()[1][3]
@@ -143,13 +144,15 @@ class SimplateServerHandler(BaseHandler):
         return db.GetFeedbackStatistics()
 
 ### Bar methods
+
     def barOrderInfo(self, drinks):
         self._checkRegistered()
         self._checkSessionStarted()
         self._checkIfBarSimplate()
         _logFunction("simplateId=", self.simplateId, " ,drinks=", drinks)
+        AddBarOrders(drinks, self.simplateId)
+        SendBarOrders(None)
         return
-        #TODO: implement
 
         
 
@@ -193,18 +196,75 @@ class SimplateServerHandler(BaseHandler):
             return False
 
 
+### Bar methods
+_lock = threading.RLock()
+_barConnections = []
+_barOrderId = 0
+_barOrderCache = {} #holds lists of [drink, simplateId, isSent]
+
+def AddBarOrders(drinks, simplateId):
+    global _barOrderCache
+    global _barOrderId
+    with _lock:
+        for drink in drinks:
+            _barOrderCache[_barOrderId] = [drink, simplateId, False]
+            _barOrderId += 1
+
+def SendBarOrders(newConnection):
+    global _barOrderCache
+
+    with _lock:
+
+        if not _barConnections and not newConnection:
+            logging.warning("Cannot send bar orders. No bar is connected. Pending order count: %d", len(_barOrderCache))
+            return
+
+        for id in _barOrderCache.keys():
+            order = _barOrderCache[id]
+
+            if not order[2]: #send to existing connection only if not isSent
+                order[2] = True
+                for c in _barConnections:
+                    c.method.newBarOrder(order[0], id, order[1]) #TODO: is processing of method needed?
+
+            if newConnection: #forcibly send to a new connection
+                newConnection.method.newBarOrder(order[0], id, order[1]) #TODO: is processing of method needed?
+
+
+def RemoveBarOrder(id):
+    global _barOrderCache
+    with _lock:
+        if not _barOrderCache[id][2]:
+            logging.warning("Deleting an unsent order: %s", unicode(_barOrderCache[id]))
+        if id in _barOrderCache:
+            del _barOrderCache[id]
+
+
 #########################################
 class BarServerHandler(BaseHandler):
     def _shutdown(self):
-        pass
+        logging.info("bar disconnected")
+        global _barConnections
+        with _lock:
+            _barConnections.remove(self._conn)
         
     def _setup(self):
-        pass
+        logging.info("bar connected")
+
+    def registrate(self): #TODO: review
+        logging.info("bar registered")
+        global _barConnections
+        SendBarOrders(self._conn)
+        with _lock:
+            _barConnections.append(self._conn)
 
     def ping(self):
-        logging.debug("Ping")
+        logging.info("Ping from bar") #TODO: make debug if ping is too often
         return
 
+    def barOrderDone(self, orderId):
+        logging.info("Bar order done, orderId=%d", orderId)
+        RemoveBarOrder(orderId)
 
 
 def simplateServer(port):
