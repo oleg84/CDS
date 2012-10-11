@@ -15,8 +15,19 @@ def ProcessSimpleResult(simpleId, simpleResult):
         ProcessFeedbackResult(simpleResult)
 
 def ProcessFeedbackResult(result):
-    #TODO: implement
-    pass
+    isSucceeded = result[0]
+    feedback = result[1]
+    if not isSucceeded:
+        db.IncrementFeedback('cancel')
+        return
+
+    if feedback == 0:
+        db.IncrementFeedback('no')
+    elif feedback == 1:
+        db.IncrementFeedback('yes')
+    else:
+        db.IncrementFeedback('cancel')
+
 
 def ProcessBigShowResult(result):
     '''

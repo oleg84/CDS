@@ -140,8 +140,7 @@ class SimplateServerHandler(BaseHandler):
         self._checkSessionStarted()
         self._checkIfShopSimplate()
         _logFunction("simplateId=", self.simplateId)
-        return {'yes': 30, 'no': 70}
-        #TODO: implement
+        return db.GetFeedbackStatistics()
 
 ### Bar methods
     def barOrderInfo(self, drinks):

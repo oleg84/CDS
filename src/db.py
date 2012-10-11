@@ -44,7 +44,15 @@ class BigShow(Base):
     time = Column(DateTime)
 
     def __repr__(self):
-        return "<lastShown %s>" % str(self.lastShown)
+        return "<lastTime %s>" % str(self.lastShown)
+
+class Feedback(Base):
+    __tablename__ = 'feedback'
+    id = Column(String, primary_key = True)
+    count = Column(Integer)
+
+    def __repr__(self):
+        return "<Feedback: %s, count: %d>" % (self.id, self.count)
 
 
 Base.metadata.create_all(engine)
@@ -227,3 +235,51 @@ def CancelLastAllowedTime():
 
 def _timedelta_total_seconds(td): #this is not defined in python earlier v 2.7
     return td.days * 24 * 3600 + td.seconds #ignore microseconds
+
+####################################
+#Working with Feedback
+####################################
+
+def IncrementFeedback(answer):
+    '''
+    Increment a value of the feedback for a specific answer
+
+    answer should be a string
+    '''
+    session = Session()
+    f = session.query(Feedback).filter(Feedback.id == answer).first()
+
+    if not f:
+        f = Feedback() 
+        f.id = answer
+        f.count = 0
+        session.add(f)
+
+    f.count += 1
+
+    session.commit()
+    session.close()
+
+def GetFeedbackStatistics():
+    '''
+    Returns a dictionary of feedback statistics in the following format:
+    {
+        'answer1' : count1,
+        'answer2' : count2,
+        ...
+    }
+    '''
+    session = Session()
+    fs = session.query(Feedback).all()
+    
+    ret = {}
+
+    for f in fs:
+        ret[f.id] = f.count
+
+    session.close()
+
+    return ret
+
+
+    
