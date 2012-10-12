@@ -10,6 +10,7 @@ import plasma
 import simple
 import collections
 import threading
+import time
 
 def _function():
     return inspect.stack()[1][3]
@@ -219,16 +220,17 @@ def SendBarOrders(newConnection):
             logging.warning("Cannot send bar orders. No bar is connected. Pending order count: %d", len(_barOrderCache))
             return
 
+        logging.info("Sending %d orders to bar", len(_barOrderCache))
         for id in _barOrderCache.keys():
             order = _barOrderCache[id]
 
             if not order[2]: #send to existing connection only if not isSent
                 order[2] = True
                 for c in _barConnections:
-                    c.method.newBarOrder(order[0], id, order[1]) #TODO: is processing of method needed?
+                    c.method.newBarOrder(order[0], id, order[1])
 
             if newConnection: #forcibly send to a new connection
-                newConnection.method.newBarOrder(order[0], id, order[1]) #TODO: is processing of method needed?
+                newConnection.method.newBarOrder(order[0], id, order[1])
 
 
 def RemoveBarOrder(id):

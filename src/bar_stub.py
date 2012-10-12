@@ -15,7 +15,7 @@ class BarStubHandler(BaseHandler):
 
     def newBarOrder(self, drink, orderId, simplateId):
         logging.info("New order id=%d simplate=%s: %s", orderId, simplateId, unicode(drink))
-        self._conn.call.barOrderDone(orderId)
+        self._conn.method.barOrderDone(orderId)
 
 c=connect(host="127.0.0.1", port=settings.BAR_SERVER_PORT, handler_factory=BarStubHandler)
 c.call.registrate()

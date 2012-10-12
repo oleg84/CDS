@@ -31,7 +31,8 @@ c.close()
 c=connect(host="127.0.0.1", port=18888)
 c.call.registrate(cds_settings.SCENARIO_ID_Bar, 35)
 print "Client came to the bar: " + str(c.call.startSession("client1", "Вася Пупкин"))
-c.call.barOrderInfo([{"drink":"Coke", "options":"sugar"}, {"drink":"tea", "option":"lemon"}])
+while True:
+    c.call.barOrderInfo([{"drink":"Coke", "options":"sugar"}, {"drink":"tea", "option":"lemon"}])
 c.call.endSession({'balance' : 320, 'coupons' : [{'name' : 'SuperCoupon', 'isUsed': 1}, {'name' : 'simpleCoupon', 'isUsed': 1 }]})
 c.close()
 
