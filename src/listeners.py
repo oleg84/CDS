@@ -220,26 +220,40 @@ def SendBarOrders(newConnection):
             logging.warning("Cannot send bar orders. No bar is connected. Pending order count: %d", len(_barOrderCache))
             return
 
-        logging.info("Sending %d orders to bar", len(_barOrderCache))
+        logging.info("%d orders to bar pending", len(_barOrderCache))
+        sent = 0
+        sent_new = 0
         for id in _barOrderCache.keys():
             order = _barOrderCache[id]
 
             if not order[2]: #send to existing connection only if not isSent
                 order[2] = True
+                sent += 1
                 for c in _barConnections:
                     c.method.newBarOrder(order[0], id, order[1])
 
             if newConnection: #forcibly send to a new connection
+                order[2] = True
                 newConnection.method.newBarOrder(order[0], id, order[1])
+                sent_new += 1
+
+        if sent:
+            logging.info("%d orders sent to bar", sent)
+        if sent_new:
+            logging.info("%d orders sent to a newly connected bar", sent_new)
+
 
 
 def RemoveBarOrder(id):
     global _barOrderCache
     with _lock:
-        if not _barOrderCache[id][2]:
-            logging.warning("Deleting an unsent order: %s", unicode(_barOrderCache[id]))
         if id in _barOrderCache:
+            if not _barOrderCache[id][2]:
+                logging.warning("Deleting an unsent order: %s", unicode(_barOrderCache[id]))
             del _barOrderCache[id]
+        else:
+            logging.warning("Order does not exist: %d", id)
+
 
 
 #########################################

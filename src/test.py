@@ -4,6 +4,7 @@
 from bjsonrpc import connect
 from bjsonrpc.exceptions import ServerError
 import cds_settings
+import time
 
 
 #TODO: use some unit-test framework
@@ -32,7 +33,8 @@ c=connect(host="127.0.0.1", port=18888)
 c.call.registrate(cds_settings.SCENARIO_ID_Bar, 35)
 print "Client came to the bar: " + str(c.call.startSession("client1", "Вася Пупкин"))
 while True:
-    c.call.barOrderInfo([{"drink":"Coke", "options":"sugar"}, {"drink":"tea", "option":"lemon"}])
+    c.call.barOrderInfo([{"name":"Coke", "options":["whiskey", "lemon"]},  {"name":"Coffee", "options":["sugar"]} ])
+    #time.sleep(2)
 c.call.endSession({'balance' : 320, 'coupons' : [{'name' : 'SuperCoupon', 'isUsed': 1}, {'name' : 'simpleCoupon', 'isUsed': 1 }]})
 c.close()
 
