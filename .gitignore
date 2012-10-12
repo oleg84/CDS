@@ -13,3 +13,5 @@ build/
 
 #DB files
 *.sqlite
+
+external/SQLAlchemy-0.7.9/dist/
