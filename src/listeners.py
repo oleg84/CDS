@@ -48,7 +48,7 @@ class SimplateServerHandler(BaseHandler):
         return {'day' : now.day, 'hour' : now.hour}
 
     def getUtcTime(self):
-        now = datetime.datetime.utcnow().isoformat()
+        now = datetime.datetime.utcnow()
         return {'day' : now.day, 'hour' : now.hour}
         
     def registrate(self, scenarioId, simplateId):
