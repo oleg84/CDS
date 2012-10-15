@@ -44,10 +44,12 @@ class SimplateServerHandler(BaseHandler):
 
 ### Common methods
     def getLocalTime(self):
-        return datetime.datetime.now().isoformat()
+        now = datetime.datetime.now()
+        return {'day' : now.day, 'hour' : now.hour}
 
     def getUtcTime(self):
-        return datetime.datetime.utcnow().isoformat()
+        now = datetime.datetime.utcnow().isoformat()
+        return {'day' : now.day, 'hour' : now.hour}
         
     def registrate(self, scenarioId, simplateId):
         if self._isRegistered():
