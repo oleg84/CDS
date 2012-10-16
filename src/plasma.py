@@ -9,6 +9,9 @@ def shopSimpleStart(simplateId, simpleId):
 def shopSimpleResult(simplateId, simpleId, result):
     sendMessage('shopSimpleResult', simplateId, simpleId, result)
 
+def shopSimpleEnd(simplateId, simpleId):
+    sendMessage('shopSimpleEnd', simplateId, simpleId)
+
 def shopStartSession(simplateId):
     sendMessage('shopStartSession', simplateId)
 

@@ -130,6 +130,14 @@ class SimplateServerHandler(BaseHandler):
 
         plasma.shopSimpleResult(self.simplateId, simpleId, result)
         simple.ProcessSimpleResult(simpleId, result)
+    
+    def simpleEnd(self, simpleId):
+        self._checkRegistered()
+        self._checkSessionStarted()
+        self._checkIfShopSimplate()
+        _logFunction("simplateId=", self.simplateId, ", simpleId=",  simpleId)
+
+        plasma.shopSimpleEnd(self.simplateId, simpleId)
 
     def shouldStartBigShow(self):
         self._checkRegistered()

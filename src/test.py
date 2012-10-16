@@ -26,6 +26,9 @@ StartTest("New client shop -> bar")
 c=connect(host="127.0.0.1", port=18888)
 c.call.registrate(cds_settings.SCENARIO_ID_Shop, 10)
 print "Client just came: " + str(c.call.startSession("client1", "Вася Пупкин"))
+c.call.simpleStart('simple id')
+c.call.simpleResult('simple id', (1,1))
+c.call.simpleEnd('simple id')
 c.call.endSession({'balance' : 650, 'coupons' : [{'name' : 'SuperCoupon', 'isUsed': 0}, {'name' : 'simpleCoupon', 'isUsed': 1 }]})
 c.close()
 
@@ -34,7 +37,7 @@ c.call.registrate(cds_settings.SCENARIO_ID_Bar, 35)
 print "Client came to the bar: " + str(c.call.startSession("client1", "Вася Пупкин"))
 while True:
     c.call.barOrderInfo([{"name":"Coke", "options":["whiskey", "lemon"]},  {"name":"Coffee", "options":["sugar"]} ])
-    #time.sleep(2)
+    time.sleep(2)
 c.call.endSession({'balance' : 320, 'coupons' : [{'name' : 'SuperCoupon', 'isUsed': 1}, {'name' : 'simpleCoupon', 'isUsed': 1 }]})
 c.close()
 
