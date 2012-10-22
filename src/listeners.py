@@ -154,12 +154,12 @@ class SimplateServerHandler(BaseHandler):
         _logFunction("simplateId=", self.simplateId)
         return db.GetFeedbackStatistics()
 
-    def sendToSlave(self, arg1, arg2, arg3, arg4, arg5, arg6):
+    def sendToSlave(self, *args):
         self._checkRegistered()
         self._checkSessionStarted()
         self._checkIfShopSimplate()
-        _logFunction("simplateId=", self.simplateId, ", arg1=", unicode(arg1), ", arg2=", unicode(arg2), ", arg3=", unicode(arg3), ", arg4=", unicode(arg4), ", arg5=", unicode(arg5), ", arg6=", unicode(arg6))
-        SendToSlave(self.simplateId, arg1, arg2, arg3, arg4, arg5, arg6)
+        _logFunction("simplateId=", self.simplateId, ", args: ", args)
+        SendToSlave(self.simplateId, *args)
 
 ### Bar methods
 
@@ -324,7 +324,7 @@ def RemoveSlaveSimplateConnection(simplateId, conn):
         except KeyError:
             logging.critical("Trying to remove a connection which has not been added, simpate ID = %s", unicode(simpleId))
 
-def SendToSlave(simplateId, arg1, arg2, arg3, arg4, arg5, arg6):
+def SendToSlave(simplateId, *args):
     with _lockSlaveSimplate:
         try:
             connectionList = _slaveSimplateConnections[simplateId]
@@ -332,12 +332,12 @@ def SendToSlave(simplateId, arg1, arg2, arg3, arg4, arg5, arg6):
             connectionList = []
 
         if not connectionList:
-            logging.info("Ignoring a message to simpate %s with args %s, %s, %s, %s, %s, %s", unicode(simplateId), unicode(arg1), unicode(arg2), unicode(arg3), unicode(arg4), unicode(arg5), unicode(arg6))
+            logging.info("Ignoring a message to simpate %s with args: %s ", unicode(simplateId), unicode(args))
         else:
             logging.info("Sending to slave %d simplates with id %s", len(connectionList), unicode(simplateId))
 
         for c in connectionList:
-            c.method.sendToSlave(arg1, arg2, arg3, arg4, arg5, arg6)
+            c.method.sendToSlave(*args)
 
 #########################################
 class SlaveSimplateHandler(BaseHandler):

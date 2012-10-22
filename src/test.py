@@ -30,7 +30,7 @@ c.call.simpleStart('simple id')
 c.call.simpleResult('simple id', (1,1))
 c.call.simpleEnd('simple id')
 while True:
-    c.call.sendToSlave('test string', 'other string', 1, 2, 3, 4)
+    c.call.sendToSlave('test string', 'other string', 1, 2, 3, 4, 5, 6, 7, 8, 9)
     time.sleep(1)
 c.call.endSession({'balance' : 650, 'coupons' : [{'name' : 'SuperCoupon', 'isUsed': 0}, {'name' : 'simpleCoupon', 'isUsed': 1 }]})
 c.close()

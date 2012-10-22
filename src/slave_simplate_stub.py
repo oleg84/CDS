@@ -14,8 +14,8 @@ logging.basicConfig(format='%(asctime)s %(levelname)s[%(threadName)s]: %(message
 
 class SlaveSimplateStubHandler(BaseHandler):
 
-    def sendToSlave(self, arg1, arg2, arg3, arg4, arg5, arg6):
-        _logFunction("arg1=", unicode(arg1), ", arg2=", unicode(arg2), ", arg3=", unicode(arg3), ", arg4=", unicode(arg4), ", arg5=", unicode(arg5), ", arg6=", unicode(arg6))
+    def sendToSlave(self, *args):
+        _logFunction("args: ", args)
 
 c=connect(host="127.0.0.1", port=settings.SLAVE_SIMPLATE_SERVER_PORT, handler_factory=SlaveSimplateStubHandler)
 c.call.registrate(10)
