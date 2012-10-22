@@ -334,7 +334,7 @@ def SendToSlave(simplateId, *args):
         if not connectionList:
             logging.info("Ignoring a message to simpate %s with args: %s ", unicode(simplateId), unicode(args))
         else:
-            logging.info("Sending to slave %d simplates with id %s", len(connectionList), unicode(simplateId))
+            logging.info("Sending to %d slave simplates with id %s", len(connectionList), unicode(simplateId))
 
         for c in connectionList:
             c.method.sendToSlave(*args)
