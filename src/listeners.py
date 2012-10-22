@@ -154,6 +154,13 @@ class SimplateServerHandler(BaseHandler):
         _logFunction("simplateId=", self.simplateId)
         return db.GetFeedbackStatistics()
 
+    def sendToSlave(self, arg1, arg2, arg3, arg4, arg5, arg6):
+        self._checkRegistered()
+        self._checkSessionStarted()
+        self._checkIfShopSimplate()
+        _logFunction("simplateId=", self.simplateId, ", arg1=", unicode(arg1), ", arg2=", unicode(arg2), ", arg3=", unicode(arg3), ", arg4=", unicode(arg4), ", arg5=", unicode(arg5), ", arg6=", unicode(arg6))
+        SendToSlave(self.simplateId, arg1, arg2, arg3, arg4, arg5, arg6)
+
 ### Bar methods
 
     def barOrderInfo(self, drinks):
@@ -277,7 +284,7 @@ class BarServerHandler(BaseHandler):
     def _setup(self):
         logging.info("bar connected")
 
-    def registrate(self): #TODO: review
+    def registrate(self):
         logging.info("bar registered")
         global _barConnections
         SendBarOrders(self._conn)
@@ -292,9 +299,76 @@ class BarServerHandler(BaseHandler):
         logging.info("Bar order done, orderId=%d", orderId)
         RemoveBarOrder(orderId)
 
+### Slave simplate methods
+_lockSlaveSimplate = threading.RLock()
+_slaveSimplateConnections = {}
+
+def AddSlaveSimplateConnection(simplateId, conn):
+    global _slaveSimplateConnections
+    with _lockSlaveSimplate:
+        try:
+            connectionList = _slaveSimplateConnections[simplateId]
+        except KeyError:
+            connectionList = []
+
+        connectionList.append(conn)
+
+        _slaveSimplateConnections[simplateId] = connectionList
+
+
+def RemoveSlaveSimplateConnection(simplateId, conn):
+    global _slaveSimplateConnections
+    with _lockSlaveSimplate:
+        try:
+            _slaveSimplateConnections[simplateId].remove(conn)
+        except KeyError:
+            logging.critical("Trying to remove a connection which has not been added, simpate ID = %s", unicode(simpleId))
+
+def SendToSlave(simplateId, arg1, arg2, arg3, arg4, arg5, arg6):
+    with _lockSlaveSimplate:
+        try:
+            connectionList = _slaveSimplateConnections[simplateId]
+        except KeyError:
+            connectionList = []
+
+        if not connectionList:
+            logging.info("Ignoring a message to simpate %s with args %s, %s, %s, %s, %s, %s", unicode(simplateId), unicode(arg1), unicode(arg2), unicode(arg3), unicode(arg4), unicode(arg5), unicode(arg6))
+        else:
+            logging.info("Sending to slave %d simplates with id %s", len(connectionList), unicode(simplateId))
+
+        for c in connectionList:
+            c.method.sendToSlave(arg1, arg2, arg3, arg4, arg5, arg6)
+
+#########################################
+class SlaveSimplateHandler(BaseHandler):
+    def _shutdown(self):
+        logging.info("Slave simplate disconnected")
+        if self.simplateId:
+            RemoveSlaveSimplateConnection(self.simplateId, self._conn)
+        else:
+            logging.warning("Disconnected a slave simplate before registering")
+        
+    def _setup(self):
+        self.simplateId = None 
+        logging.info("slave simplate connected")
+
+    def registrate(self, simplateId):
+        _logFunction("simplateId=", simplateId)
+        self.simplateId = simplateId
+        AddSlaveSimplateConnection(simplateId, self._conn)
+
+    def ping(self):
+        logging.info("Ping from slave simplate") #TODO: make debug if ping is too often
+        return
+
 
 def simplateServer(port):
 	s = bjsonrpc.createserver( host = '', port=port, handler_factory = SimplateServerHandler )
+	s.debug_socket(True)
+	s.serve()
+
+def slaveSimplateServer(port):
+	s = bjsonrpc.createserver( host = '', port=port, handler_factory = SlaveSimplateHandler )
 	s.debug_socket(True)
 	s.serve()
 
