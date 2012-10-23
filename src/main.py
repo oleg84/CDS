@@ -4,7 +4,6 @@ import threading
 
 import settings
 import listeners
-import plasma
 
 class SimplateServerThread(threading.Thread):
 	def __init__(self, port):
@@ -43,10 +42,6 @@ class BarServerThread(threading.Thread):
 logging.basicConfig(format='%(asctime)s %(levelname)s[%(threadName)s]: %(message)s', filename='server.log', filemode='a', level=settings.LOGLEVEL)
 
 logging.info("--- Server started ---")
-plasma.init('', settings.PLASMA_PORT)
-t = threading.Thread(target = plasma.serve, name="PlasmaServer") #TODO: should be a separate class?
-t.daemon = True
-t.start()
 
 try:
 	simplateServerThread = SimplateServerThread(settings.SIMPLATE_SERVER_PORT)
