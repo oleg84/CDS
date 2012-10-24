@@ -24,21 +24,21 @@ def SimplateLoop():
             time.sleep(random.uniform(1,2))
             r = random.randint(0,2)
             if r == 0:
-                logging.info("Starting a succesfull show")
+                logging.info("Starting a succesfull show with id 1")
                 c.call.simpleStart(cds_settings.SIMPLE_ID_BIG_SHOW)
                 time.sleep(random.uniform(3,5))
                 c.call.simpleResult(cds_settings.SIMPLE_ID_BIG_SHOW, (1,1))
             elif r == 1:
                 logging.info("Canceling a show")
-                c.call.simpleResult(cds_settings.SIMPLE_ID_BIG_SHOW, (1,0))
-            elif r == 2:
-                logging.info("Client time out")
-                time.sleep(random.uniform(5,10))
                 c.call.simpleResult(cds_settings.SIMPLE_ID_BIG_SHOW, (0,None))
+            elif r == 2:
+                logging.info("Starting a succesfull show with id 2")
+                time.sleep(random.uniform(3,5))
+                c.call.simpleResult(cds_settings.SIMPLE_ID_BIG_SHOW, (1,2))
 
 
 
-for i in range(1,50):
+for i in range(1,5):
     t = threading.Thread(target = SimplateLoop, name="Simplate #" + str(i))
     t.daemon = True
     t.start()

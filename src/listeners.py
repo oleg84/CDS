@@ -355,6 +355,40 @@ class SlaveSimplateHandler(BaseHandler):
         logging.info("Ping from slave simplate") #TODO: make debug if ping is too often
         return
 
+### Big show methods
+_lockBigShow = threading.RLock()
+_bigShowConnections = []
+
+def StartBigShow(bigShowId):
+    with _lockBigShow:
+        if not _bigShowConnections:
+            logging.warning("Ignoring a start big show command (show id = %s). No big show client is connected", unicode(bigShowId))
+            return
+
+        logging.info("Sending a start big show command (show id = %s) to %d client(s)", unicode(bigShowId), len(_bigShowConnections))
+        for c in _bigShowConnections:
+            c.method.startBigShow(bigShowId)
+
+#########################################
+class BigShowServerHandler(BaseHandler):
+    def _shutdown(self):
+        logging.info("big show client disconnected")
+        global _bigShowConnections
+        with _lockBigShow:
+            _bigShowConnections.remove(self._conn)
+        
+    def _setup(self):
+        logging.info("big show client connected")
+
+    def registrate(self):
+        logging.info("big show client registered")
+        global _bigShowConnections
+        with _lockBigShow:
+            _bigShowConnections.append(self._conn)
+
+    def ping(self):
+        logging.info("Ping from big show client") #TODO: make debug if ping is too often
+        return
 
 def simplateServer(port):
 	s = bjsonrpc.createserver( host = '', port=port, handler_factory = SimplateServerHandler )
@@ -368,5 +402,10 @@ def slaveSimplateServer(port):
 
 def barServer(port):
 	s = bjsonrpc.createserver( host = '', port=port, handler_factory = BarServerHandler )
+	s.debug_socket(True)
+	s.serve()
+
+def bigShowServer(port):
+	s = bjsonrpc.createserver( host = '', port=port, handler_factory = BigShowServerHandler )
 	s.debug_socket(True)
 	s.serve()

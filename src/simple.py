@@ -1,5 +1,8 @@
 import cds_settings
 import db
+import listeners
+
+
 
 def ProcessSimpleResult(simpleId, simpleResult):
     '''
@@ -31,13 +34,14 @@ def ProcessFeedbackResult(result):
 
 def ProcessBigShowResult(result):
     '''
-    A big show is considered shown when the result is (1,1) only
+    Big show is considered started, when result[0] is 1. The result[1] in this case is the show ID
     '''
 
     isSucceeded = result[0]
-    wasShown = result[1]
+    bigShowId = result[1]
 
-    if isSucceeded and wasShown:
+    if isSucceeded:
         db.SetBigShowShown()
+        listeners.StartBigShow(bigShowId)
     else:
         db.CancelLastAllowedTime()
