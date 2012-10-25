@@ -6,7 +6,6 @@ import cds_settings
 import inspect
 import db
 import datetime
-import plasma
 import simple
 import collections
 import threading
@@ -90,7 +89,6 @@ class SimplateServerHandler(BaseHandler):
             raise ServerError("Internal server error. See logs")
 
         self.cardId = cardId
-        plasma.shopStartSession(self.simplateId)
         return client
 
 
@@ -101,7 +99,6 @@ class SimplateServerHandler(BaseHandler):
 
         cardId = self.cardId
         self.cardId = None
-        plasma.shopEndSession(self.simplateId)
         if type(updatedAccountInfo) is not dict or 'balance' not in updatedAccountInfo or 'coupons' not in updatedAccountInfo:
             log.error("Wrong format of the updatedAccountInfo %s", unicode(updatedAccountInfo))
             raise ServerError("Internal server error. See logs")
@@ -117,7 +114,6 @@ class SimplateServerHandler(BaseHandler):
         self._checkSessionStarted()
         self._checkIfShopSimplate()
         _logFunction("simplateId=", self.simplateId, ", simpleId=",  simpleId)
-        plasma.shopSimpleStart(self.simplateId, simpleId)
         return 
 
     def simpleResult(self, simpleId, result):
@@ -128,7 +124,6 @@ class SimplateServerHandler(BaseHandler):
         if not isinstance(result, collections.Iterable) or len(result) != 2:
             raise ServerError("simpleResult incorrect type. Should be a tuple of 2")
 
-        plasma.shopSimpleResult(self.simplateId, simpleId, result)
         simple.ProcessSimpleResult(simpleId, result)
     
     def simpleEnd(self, simpleId):
@@ -137,7 +132,6 @@ class SimplateServerHandler(BaseHandler):
         self._checkIfShopSimplate()
         _logFunction("simplateId=", self.simplateId, ", simpleId=",  simpleId)
 
-        plasma.shopSimpleEnd(self.simplateId, simpleId)
 
     def shouldStartBigShow(self):
         self._checkRegistered()
@@ -334,7 +328,7 @@ def SendToSlave(simplateId, *args):
         if not connectionList:
             logging.info("Ignoring a message to simpate %s with args: %s ", unicode(simplateId), unicode(args))
         else:
-            logging.info("Sending to slave %d simplates with id %s", len(connectionList), unicode(simplateId))
+            logging.info("Sending to %d slave simplates with id %s", len(connectionList), unicode(simplateId))
 
         for c in connectionList:
             c.method.sendToSlave(*args)
@@ -361,6 +355,40 @@ class SlaveSimplateHandler(BaseHandler):
         logging.info("Ping from slave simplate") #TODO: make debug if ping is too often
         return
 
+### Big show methods
+_lockBigShow = threading.RLock()
+_bigShowConnections = []
+
+def StartBigShow(bigShowId):
+    with _lockBigShow:
+        if not _bigShowConnections:
+            logging.warning("Ignoring a start big show command (show id = %s). No big show client is connected", unicode(bigShowId))
+            return
+
+        logging.info("Sending a start big show command (show id = %s) to %d client(s)", unicode(bigShowId), len(_bigShowConnections))
+        for c in _bigShowConnections:
+            c.method.startBigShow(bigShowId)
+
+#########################################
+class BigShowServerHandler(BaseHandler):
+    def _shutdown(self):
+        logging.info("big show client disconnected")
+        global _bigShowConnections
+        with _lockBigShow:
+            _bigShowConnections.remove(self._conn)
+        
+    def _setup(self):
+        logging.info("big show client connected")
+
+    def registrate(self):
+        logging.info("big show client registered")
+        global _bigShowConnections
+        with _lockBigShow:
+            _bigShowConnections.append(self._conn)
+
+    def ping(self):
+        logging.info("Ping from big show client") #TODO: make debug if ping is too often
+        return
 
 def simplateServer(port):
 	s = bjsonrpc.createserver( host = '', port=port, handler_factory = SimplateServerHandler )
@@ -374,5 +402,10 @@ def slaveSimplateServer(port):
 
 def barServer(port):
 	s = bjsonrpc.createserver( host = '', port=port, handler_factory = BarServerHandler )
+	s.debug_socket(True)
+	s.serve()
+
+def bigShowServer(port):
+	s = bjsonrpc.createserver( host = '', port=port, handler_factory = BigShowServerHandler )
 	s.debug_socket(True)
 	s.serve()
