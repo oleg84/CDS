@@ -150,7 +150,7 @@ class SimplateServerHandler(BaseHandler):
     def getFeedbackStatistics(self):
         self._checkRegistered()
         self._checkSessionStarted()
-        self._checkIfShopSimplate()
+#         self._checkIfShopSimplate()
         _logFunction("simplateId=", self.simplateId)
         return db.GetFeedbackStatistics()
 
