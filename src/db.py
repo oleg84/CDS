@@ -18,6 +18,7 @@ class Client(Base):
 
     cardId = Column(String, primary_key = True)
     balance = Column(Integer, nullable = False)
+    isVip = Column(Integer, nullable = False)
     clientInfo = Column(String)
     coupons = relationship('Coupon', backref = 'client')
 
@@ -66,6 +67,7 @@ def getClient(cardId):
     Tries to get a Client in the following format:
     {
       'balance':integer
+      'isVip':integer (0/1)
       'coupons': ['name' : 'string', 'isUsed': integer(0/1)]
     }
     If there is no such client, returns None
@@ -79,7 +81,7 @@ def getClient(cardId):
     except NoResultFound:
         return None
 
-    ret = {'balance' : c.balance, 'coupons' : []}
+    ret = {'balance' : c.balance, 'isVip' : c.isVip, 'coupons' : []}
 
     for cp in c.coupons:
         ret['coupons'].append({'name' : cp.name, 'isUsed' : cp.isUsed})
@@ -88,7 +90,7 @@ def getClient(cardId):
     return ret
 
 
-def createClient(cardId, balance, clientInfo):
+def createClient(cardId, balance, isVip, clientInfo):
     '''
     Creates a client
 
@@ -99,6 +101,7 @@ def createClient(cardId, balance, clientInfo):
     c = Client()
     c.cardId = cardId
     c.balance = balance
+    c.isVip = isVip
     c.clientInfo = clientInfo
     try:
         session.add(c)
@@ -108,7 +111,7 @@ def createClient(cardId, balance, clientInfo):
         return None
     session.close()
 
-    return {'balance' : balance, 'coupons' : []}
+    return {'balance' : balance, 'isVip': isVip, 'coupons' : []}
 
 
 def updateClient(cardId, balance, coupons):

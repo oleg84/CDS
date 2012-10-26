@@ -74,7 +74,11 @@ class SimplateServerHandler(BaseHandler):
         client = db.getClient(cardId)
         if not client:
             if self._isShopScenario():
-                client = db.createClient(cardId, cds_settings.CLIENT_INITIAL_BALANCE, clientInfo)
+                if cds_settings.MAKE_VIP_CLIENTS:
+                    isVip = 1
+                else:
+                    isVip = 0
+                client = db.createClient(cardId, cds_settings.CLIENT_INITIAL_BALANCE, isVip, clientInfo)
                 
             elif self._isBarScenario():
                 logging.warning("An unknown client came to the bar. Card id = %s", unicode(cardId))
