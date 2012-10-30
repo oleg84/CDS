@@ -27,10 +27,34 @@ def _logFunction(*args):
     logging.info("%s(%s)", _functionCaller(), s)
 
 #########################################
+_activeClients = []
+_clientsLock = threading.RLock()
+
+def TryAddClient(clientId):
+    global _activeClients
+    with _clientsLock:
+        if clientId in _activeClients:
+            logging.debug("All active clients: %s", unicode(_activeClients))
+            return False
+        else:
+            _activeClients.append(clientId)
+            return True
+
+def RemoveClient(clientId):
+    global _activeClients
+    with _clientsLock:
+        if clientId in _activeClients:
+            _activeClients.remove(clientId)
+        else:
+            logging.warning("Trying to remove a client which is not in _activeClients: %s", unicode(clientId))
+
+
 class SimplateServerHandler(BaseHandler):
     def _shutdown(self):
         logging.info("disconnected, simplateId=%s", unicode(self.simplateId))
         db.CancelLastAllowedTime()
+        if self.cardId:
+            RemoveClient(self.cardId)
 
     def _setup(self):
         self.scenarioId = None
@@ -70,6 +94,11 @@ class SimplateServerHandler(BaseHandler):
             raise ServerError("Session already started")
             
         _logFunction("simplateId=", self.simplateId, ", cardId=",  cardId,  ", clientInfo=", clientInfo)
+
+        if not TryAddClient(cardId):
+            logging.error("Duplicate cardId (simplate Id: %s): %s", unicode(self.simplateId), unicode(cardId))
+            raise ServerError("Duplicate cardId")
+
         
         client = db.getClient(cardId)
         if not client:
@@ -82,14 +111,17 @@ class SimplateServerHandler(BaseHandler):
                 
             elif self._isBarScenario():
                 logging.warning("An unknown client came to the bar. Card id = %s", unicode(cardId))
+                RemoveClient(cardId)
                 raise ServerError("Unknown client")
 
             else: #this should never happen
                 logging.critical("Unknown scenarioId: %d:", self.scenarioId)
+                RemoveClient(cardId)
                 raise ServerError("Unknown scenarioId")
 
         if not client:
             logging.critical("Could not get client information")
+            RemoveClient(cardId)
             raise ServerError("Internal server error. See logs")
 
         self.cardId = cardId
@@ -103,6 +135,8 @@ class SimplateServerHandler(BaseHandler):
 
         cardId = self.cardId
         self.cardId = None
+        if cardId:
+            RemoveClient(cardId)
         if type(updatedAccountInfo) is not dict or 'balance' not in updatedAccountInfo or 'coupons' not in updatedAccountInfo:
             log.error("Wrong format of the updatedAccountInfo %s", unicode(updatedAccountInfo))
             raise ServerError("Internal server error. See logs")
