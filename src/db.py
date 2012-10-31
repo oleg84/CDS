@@ -19,6 +19,7 @@ class Client(Base):
     cardId = Column(String, primary_key = True)
     balance = Column(Integer, nullable = False)
     isVip = Column(Integer, nullable = False)
+    isOkForBar = Column(Integer, nullable = False)
     clientInfo = Column(String)
     coupons = relationship('Coupon', backref = 'client')
 
@@ -62,7 +63,7 @@ Session = sessionmaker(bind=engine)
 ####################################
 #Working with clients and coupons
 ####################################
-def getClient(cardId):
+def getClient(cardId, isBar):
     '''
     Tries to get a Client in the following format:
     {
@@ -79,6 +80,9 @@ def getClient(cardId):
         logging.critical("Found multiple clients with cardId=%s", unicode(cardId))
         return None
     except NoResultFound:
+        return None
+
+    if isBar and not c.isOkForBar:
         return None
 
     ret = {'balance' : c.balance, 'isVip' : c.isVip, 'coupons' : []}
@@ -102,6 +106,7 @@ def createClient(cardId, balance, isVip, clientInfo):
     c.cardId = cardId
     c.balance = balance
     c.isVip = isVip
+    c.isOkForBar = 0
     c.clientInfo = clientInfo
     try:
         session.add(c)
@@ -158,7 +163,35 @@ def updateClient(cardId, balance, coupons):
 
     session.close()
     return True
-    
+
+def allowClientToBar(cardId):
+    '''
+    Update the client info to allow it to visit a bar
+
+    Returns False if failed, True otherwise
+    '''
+
+    logging.debug("DB: allow client to bar: %s", unicode(cardId))
+    session = Session()
+    try:
+        c = session.query(Client).options(subqueryload(Client.coupons)).filter(Client.cardId == cardId).one()
+    except MultipleResultsFound: #this should never happen
+        logging.critical("Found multiple clients with cardId=%s", unicode(cardId))
+        return False
+    except NoResultFound:
+        logging.error("Did not find a client with cardId=%s", unicode(cardId))
+        return False
+
+    c.isOkForBar = 1
+   
+    try:
+        session.commit()
+    except IntegrityError as e:
+        logging.error("Error updating a client: %s", str(e))
+        return False
+
+    session.close()
+    return True
         
 
 ####################################

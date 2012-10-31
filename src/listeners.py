@@ -100,7 +100,7 @@ class SimplateServerHandler(BaseHandler):
             raise ServerError("Duplicate cardId")
 
         
-        client = db.getClient(cardId)
+        client = db.getClient(cardId, self._isBarScenario())
         if not client:
             if self._isShopScenario():
                 if cds_settings.MAKE_VIP_CLIENTS:
@@ -143,6 +143,9 @@ class SimplateServerHandler(BaseHandler):
 
         if not db.updateClient(cardId, updatedAccountInfo['balance'], updatedAccountInfo['coupons']):
             log.error("Could not update client account info, cardId: %s", unicode(seld.cardId))
+            raise ServerError("Internal server error. See logs")
+        if not db.allowClientToBar(cardId):
+            log.error("Could not allow client to bar, cardId: %s", unicode(seld.cardId))
             raise ServerError("Internal server error. See logs")
         return 
 

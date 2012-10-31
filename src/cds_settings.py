@@ -12,5 +12,5 @@ SIMPLE_ID_FEEDBACK = "happy_metter"
 #Uncomment the True setting to add new clients with the isVip flag set to 1.
 #Restarting of the server is needed
 
-MAKE_VIP_CLIENTS = True
-# MAKE_VIP_CLIENTS = False 
+#MAKE_VIP_CLIENTS = True
+MAKE_VIP_CLIENTS = False 
