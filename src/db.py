@@ -107,7 +107,7 @@ def createClient(cardId, balance, isVip, clientInfo):
     c.balance = balance
     c.isVip = isVip
     c.isOkForBar = 0
-    c.clientInfo = clientInfo
+    c.clientInfo = unicode(clientInfo)
     try:
         session.add(c)
         session.commit()

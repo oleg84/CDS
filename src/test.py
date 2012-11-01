@@ -33,7 +33,7 @@ c.call.simpleEnd('simple id')
 #    c.call.sendToSlave('test string', 'other string', 1, 2, 3, 4, 5, 6, 7, 8, 9)
 #    time.sleep(1)
 c.call.endSession({'balance' : 650, 'coupons' : [{'name' : 'SuperCoupon', 'isUsed': 0}, {'name' : 'simpleCoupon', 'isUsed': 1 }]})
-c.call.startSession("0123456789012345", "John Doe")
+c.call.startSession("0123456789012345", {'name':"John Doe", "test":"test"})
 c.close()
 
 c=connect(host="127.0.0.1", port=18888)
