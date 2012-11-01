@@ -53,6 +53,10 @@ def createserver(host="127.0.0.1", port=10123,
     """
     sck = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sck.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sck.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+    sck.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 5)
+    sck.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 10)
+    sck.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 1)
 
     sck.bind((host, port))
     sck.listen(3) 
