@@ -326,8 +326,13 @@ class BarServerHandler(BaseHandler):
         with _lock:
             _barConnections.append(self._conn)
 
-    def ping(self):
-        logging.info("Ping from bar") #TODO: make debug if ping is too often
+    #def ping(self):
+    #    logging.info("Ping from bar") #TODO: make debug if ping is too often
+    #    return
+
+    def ping(self, id):
+        logging.info("Ping from bar with id = %s", unicode(id)) #TODO: make debug if ping is too often
+        self._conn.method.ping(id)
         return
 
     def barOrderDone(self, orderId):
