@@ -30,7 +30,7 @@ class Coupon(Base):
     __tablename__ = 'coupons'
     id = Column(Integer, primary_key = True)
     clientId = Column(String, ForeignKey('clients.cardId'))
-    name = Column(String, unique = True)
+    name = Column(String)
     isUsed = Column(Integer, nullable = False)
 
     def __init__(self, name, isUsed):

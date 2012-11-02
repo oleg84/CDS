@@ -138,14 +138,14 @@ class SimplateServerHandler(BaseHandler):
         if cardId:
             RemoveClient(cardId)
         if type(updatedAccountInfo) is not dict or 'balance' not in updatedAccountInfo or 'coupons' not in updatedAccountInfo:
-            log.error("Wrong format of the updatedAccountInfo %s", unicode(updatedAccountInfo))
+            logging.error("Wrong format of the updatedAccountInfo %s", unicode(updatedAccountInfo))
             raise ServerError("Internal server error. See logs")
 
         if not db.updateClient(cardId, updatedAccountInfo['balance'], updatedAccountInfo['coupons']):
-            log.error("Could not update client account info, cardId: %s", unicode(seld.cardId))
+            logging.error("Could not update client account info, cardId: %s", unicode(self.cardId))
             raise ServerError("Internal server error. See logs")
         if not db.allowClientToBar(cardId):
-            log.error("Could not allow client to bar, cardId: %s", unicode(seld.cardId))
+            logging.error("Could not allow client to bar, cardId: %s", unicode(self.cardId))
             raise ServerError("Internal server error. See logs")
         return 
 
